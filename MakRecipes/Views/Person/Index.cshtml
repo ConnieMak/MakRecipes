@@ -1,0 +1,30 @@
+﻿@model MakRecipes.Models.PersonListViewModel
+@{
+    ViewBag.Title = "People";
+}
+
+<h2>People</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (var i = 0; i < Model.People.Count; i++)
+        {
+            <tr>
+                <td>@Model.People[i].FullName</td>
+                <td>@Html.ActionLink("Detail", "PersonDetail", new { id = Model.People[i].PersonId })</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="col-sm-12 form-group">
+    <label>Total People:</label> @Model.TotalPeople
+</div>
+<div class="col-sm-12">
+    @Html.ActionLink("Add Person", "PersonAdd", null, new { @class = "btn btn-primary" })
+</div>
