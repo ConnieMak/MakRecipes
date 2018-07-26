@@ -10,5 +10,7 @@ namespace MakRecipes.Models
         public int PersonId { get; set; }
         public string LastName { get; set; }
         public string FirstName { get; set; }
+
+        public virtual ICollection<CustomRecipe> CustomRecipes { get; set; }
     }
 }

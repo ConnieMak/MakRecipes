@@ -9,17 +9,16 @@ namespace MakRecipes.Controllers
 {
     public class PersonController : Controller
     {
-        public static List<Person> People = new List<Person>
-                {
-                    new Person { PersonId = 1, LastName = "Makranszky", FirstName = "Connie" },
-                    new Person { PersonId = 2, LastName = "Ploss", FirstName = "Cindy" },
-                    new Person { PersonId = 3, LastName = "Makranszky", FirstName = "Jacquelyn"},
-                    new Person { PersonId = 4, LastName = "Ploss", FirstName = "Cathy" }
-                    
-                };
-            public ActionResult PersonDetail(int id)
+        private Recipes Recipes;
+        public PersonController()
+        {
+            Recipes = new Recipes();
+        }
+        public ActionResult PersonDetail(int id)
+        {
+            using (var Recipes = new Recipes())
             {
-                var person = People.SingleOrDefault(p => p.PersonId == id);
+                var person = Recipes.People.SingleOrDefault(p => p.PersonId == id);
                 if (person != null)
                 {
                     var personViewModel = new PersonViewModel
@@ -31,7 +30,7 @@ namespace MakRecipes.Controllers
 
                     return View(personViewModel);
                 }
-
+            }
                 return new HttpNotFoundResult();
             }
 
@@ -40,25 +39,86 @@ namespace MakRecipes.Controllers
             var personViewModel = new PersonViewModel();
 
             return View("AddEditPerson", personViewModel);
+
         }
+
 
         [HttpPost]
         public ActionResult AddPerson(PersonViewModel personViewModel)
         {
-            var nextPersonId = People.Max(p => p.PersonId) + 1;
-
-            var person = new Person
+            using (var Recipes = new Recipes())
             {
-                PersonId = nextPersonId,
-                LastName = personViewModel.LastName,
-                FirstName = personViewModel.FirstName
-            };
+                var nextPersonId = Recipes.People.Max(p => p.PersonId) + 1;
 
-            People.Add(person);
+                var person = new Person
+                {
+                    LastName = personViewModel.LastName,
+                    FirstName = personViewModel.FirstName
+                };
+
+                Recipes.People.Add(person);
+                Recipes.SaveChanges();
+            }
 
             return RedirectToAction("Index");
         }
 
+        public ActionResult PersonEdit(int id)
+        {
+            using (var Recipes = new Recipes())
+            {
+                var person = Recipes.People.SingleOrDefault(p => p.PersonId == id);
+                if (person != null)
+                {
+                    var personViewModel = new PersonViewModel
+                    {
+                        PersonId = person.PersonId,
+                        LastName = person.LastName,
+                        FirstName = person.FirstName
+                    };
+
+                    return View("AddEditPerson", personViewModel);
+                }
+            }
+            return new HttpNotFoundResult();
+        }
+
+        [HttpPost]
+        public ActionResult EditPerson(PersonViewModel personViewModel)
+        {
+            using (var Recipes = new Recipes())
+            {
+                var person = Recipes.People.SingleOrDefault(p => p.PersonId == personViewModel.PersonId);
+
+                if (person != null)
+                {
+                    person.LastName = personViewModel.LastName;
+                    person.FirstName = personViewModel.FirstName;
+                    Recipes.SaveChanges();
+
+                    return RedirectToAction("Index");
+                }
+            }
+            return new HttpNotFoundResult();
+        }
+
+        [HttpPost]
+        public ActionResult DeletePerson(PersonViewModel personViewModel)
+        {
+            using (var Recipes = new Recipes())
+            {
+                var person = Recipes.People.SingleOrDefault(p => p.PersonId == personViewModel.PersonId);
+
+                if (person != null)
+                {
+                    Recipes.People.Remove(person);
+                    Recipes.SaveChanges();
+
+                    return RedirectToAction("Index");
+                }
+            }
+            return new HttpNotFoundResult();
+        }
 
 
         public ActionResult Index()
@@ -66,7 +126,7 @@ namespace MakRecipes.Controllers
             var personList = new PersonListViewModel
             {
                 //Convert each Person to a PersonViewModel
-                People = People.Select(p => new PersonViewModel
+                People = Recipes.People.Select(p => new PersonViewModel
                 {
                     PersonId = p.PersonId,
                     LastName = p.LastName,
